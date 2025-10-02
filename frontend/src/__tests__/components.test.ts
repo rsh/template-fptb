@@ -89,7 +89,9 @@ describe("Components", () => {
 
       const form = createItemForm(mockCategories, mockItem);
       const titleInput = form.querySelector("#item-title") as HTMLInputElement;
-      const descriptionInput = form.querySelector("#item-description") as HTMLTextAreaElement;
+      const descriptionInput = form.querySelector(
+        "#item-description"
+      ) as HTMLTextAreaElement;
       const statusSelect = form.querySelector("#item-status") as HTMLSelectElement;
 
       expect(titleInput.value).toBe("Test Item");
@@ -181,7 +183,12 @@ describe("Components", () => {
           id: 1,
           title: "<script>alert('xss')</script>",
           description: "<b>Bold</b>",
-          category: { id: 1, name: "<em>Cat</em>", description: "", created_at: "2024-01-01" },
+          category: {
+            id: 1,
+            name: "<em>Cat</em>",
+            description: "",
+            created_at: "2024-01-01",
+          },
           status: "active",
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",

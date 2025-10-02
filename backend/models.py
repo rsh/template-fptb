@@ -1,5 +1,5 @@
 """Database models - example template with User and domain models."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, cast
 
 from flask_sqlalchemy import SQLAlchemy
@@ -17,9 +17,14 @@ class User(db.Model):  # type: ignore  # db.Model lacks type stubs
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     username = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
     updated_at = db.Column(
-        db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     # Relationships - customize based on your domain
@@ -56,7 +61,9 @@ class Category(db.Model):  # type: ignore  # db.Model lacks type stubs
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     items = cast(
@@ -85,9 +92,14 @@ class Item(db.Model):  # type: ignore  # db.Model lacks type stubs
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     status = db.Column(db.String(50), nullable=False, default="active")
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
     updated_at = db.Column(
-        db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     # Relationships

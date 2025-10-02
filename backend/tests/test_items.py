@@ -57,7 +57,9 @@ def test_delete_item(client, auth_headers, sample_user, db_session):
     assert response.status_code == 200
 
     # Verify item is deleted
-    assert Item.query.get(item_id) is None
+    from models import db
+
+    assert db.session.get(Item, item_id) is None
 
 
 def test_cannot_access_other_users_item(client, db_session):
@@ -163,7 +165,9 @@ def test_update_item_unauthorized(client, db_session):
     assert response.status_code == 403
 
 
-def test_update_item_with_invalid_category(client, auth_headers, sample_user, db_session):
+def test_update_item_with_invalid_category(
+    client, auth_headers, sample_user, db_session
+):
     """Test updating an item with invalid category."""
     item = Item(title="Item", owner_id=sample_user.id, status="active")
     db_session.add(item)

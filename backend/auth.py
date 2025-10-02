@@ -1,6 +1,6 @@
 """Authentication utilities and decorators."""
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, TypeVar, cast
 
@@ -17,10 +17,11 @@ TOKEN_EXPIRATION_HOURS = 24
 
 def generate_token(user_id: int) -> str:
     """Generate JWT token for user."""
+    now = datetime.now(timezone.utc)
     payload = {
         "user_id": user_id,
-        "exp": datetime.utcnow() + timedelta(hours=TOKEN_EXPIRATION_HOURS),
-        "iat": datetime.utcnow(),
+        "exp": now + timedelta(hours=TOKEN_EXPIRATION_HOURS),
+        "iat": now,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 

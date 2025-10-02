@@ -54,11 +54,15 @@ FAILED=0
 run_check() {
     local name=$1
     local command=$2
+    local show_output=${3:-false}
 
     echo -e "${BLUE}Running $name...${NC}"
 
     if eval "$command" > /tmp/check_output.log 2>&1; then
         echo -e "${GREEN}✓${NC} $name passed"
+        if [ "$show_output" = true ]; then
+            cat /tmp/check_output.log
+        fi
         RESULTS+=("✓ $name")
         return 0
     else
@@ -123,7 +127,7 @@ if [ "$RUN_BACKEND" = true ]; then
     run_check "mypy (type checker)" "mypy . --exclude venv"
 
     # pytest
-    run_check "pytest (tests)" "PYTHONPATH=. pytest --cov --cov-report=term-missing"
+    run_check "pytest (tests)" "PYTHONPATH=. pytest --cov --cov-report=term-missing -W error" true
 
     cd ..
     echo ""
@@ -161,7 +165,7 @@ if [ "$RUN_FRONTEND" = true ]; then
     run_check "TypeScript (type checker)" "npm run type-check"
 
     # Jest
-    run_check "Jest (tests)" "npm run test:coverage"
+    run_check "Jest (tests)" "npm run test:coverage" true
 
     cd ..
     echo ""

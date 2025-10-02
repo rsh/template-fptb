@@ -1,5 +1,5 @@
 """Tests for auth module (token generation, validation, decorators)."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Tuple
 
 import jwt
@@ -60,10 +60,11 @@ def test_decode_token_expired() -> None:
     secret = os.getenv("SECRET_KEY", "dev-secret-key")
 
     # Create expired token
+    now = datetime.now(timezone.utc)
     expired_payload = {
         "user_id": 1,
-        "exp": datetime.utcnow() - timedelta(hours=1),
-        "iat": datetime.utcnow() - timedelta(hours=2),
+        "exp": now - timedelta(hours=1),
+        "iat": now - timedelta(hours=2),
     }
     expired_token = jwt.encode(expired_payload, secret, algorithm="HS256")
 

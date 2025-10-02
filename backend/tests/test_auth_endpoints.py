@@ -1,5 +1,4 @@
 """Tests for authentication endpoints (register, login, me)."""
-from models import User
 
 
 def test_register_success(client):

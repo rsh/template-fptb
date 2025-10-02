@@ -146,7 +146,7 @@ def get_items(current_user: User) -> tuple[dict, int]:
 @login_required
 def get_item(item_id: int, current_user: User) -> tuple[dict, int]:
     """Get a specific item."""
-    item = Item.query.get(item_id)
+    item = db.session.get(Item, item_id)
     if not item:
         return {"error": "Item not found"}, 404
 
@@ -168,7 +168,7 @@ def create_item(current_user: User) -> tuple[dict, int]:
 
     # Validate category if provided
     if data.category_id:
-        category = Category.query.get(data.category_id)
+        category = db.session.get(Category, data.category_id)
         if not category:
             return {"error": "Category not found"}, 404
 
@@ -189,7 +189,7 @@ def create_item(current_user: User) -> tuple[dict, int]:
 @login_required
 def update_item(item_id: int, current_user: User) -> tuple[dict, int]:
     """Update an item."""
-    item = Item.query.get(item_id)
+    item = db.session.get(Item, item_id)
     if not item:
         return {"error": "Item not found"}, 404
 
@@ -207,7 +207,7 @@ def update_item(item_id: int, current_user: User) -> tuple[dict, int]:
     if data.description is not None:
         item.description = data.description
     if data.category_id is not None:
-        category = Category.query.get(data.category_id)
+        category = db.session.get(Category, data.category_id)
         if not category:
             return {"error": "Category not found"}, 404
         item.category_id = data.category_id
@@ -223,7 +223,7 @@ def update_item(item_id: int, current_user: User) -> tuple[dict, int]:
 @login_required
 def delete_item(item_id: int, current_user: User) -> tuple[dict, int]:
     """Delete an item."""
-    item = Item.query.get(item_id)
+    item = db.session.get(Item, item_id)
     if not item:
         return {"error": "Item not found"}, 404
 
