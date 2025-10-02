@@ -93,10 +93,13 @@ echo ""
 # Git hooks setup
 echo -e "${BLUE}Setting up git hooks...${NC}"
 if [ -d ".git" ]; then
-    echo "Copying git hooks..."
-    cp infrastructure/git-hooks/* .git/hooks/
-    chmod +x .git/hooks/*
-    echo -e "${GREEN}✓${NC} Git hooks installed"
+    echo "Creating symlinks for git hooks..."
+    for hook in infrastructure/git-hooks/*; do
+        hook_name=$(basename "$hook")
+        chmod +x "$hook"
+        ln -sf "../../infrastructure/git-hooks/$hook_name" ".git/hooks/$hook_name"
+    done
+    echo -e "${GREEN}✓${NC} Git hooks installed (symlinked)"
 else
     echo -e "${YELLOW}⚠${NC} Not a git repository, skipping git hooks setup"
 fi
