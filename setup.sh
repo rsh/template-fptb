@@ -90,6 +90,18 @@ echo -e "${GREEN}✓${NC} Node.js dependencies installed"
 cd ..
 echo ""
 
+# Git hooks setup
+echo -e "${BLUE}Setting up git hooks...${NC}"
+if [ -d ".git" ]; then
+    echo "Copying git hooks..."
+    cp infrastructure/git-hooks/* .git/hooks/
+    chmod +x .git/hooks/*
+    echo -e "${GREEN}✓${NC} Git hooks installed"
+else
+    echo -e "${YELLOW}⚠${NC} Not a git repository, skipping git hooks setup"
+fi
+echo ""
+
 # Docker setup
 if command -v docker &> /dev/null; then
     echo -e "${BLUE}Setting up PostgreSQL database...${NC}"
@@ -146,6 +158,13 @@ echo "  - .env file created"
 echo ""
 echo -e "${GREEN}Frontend setup:${NC}"
 echo "  - Dependencies installed"
+echo ""
+echo -e "${GREEN}Git hooks setup:${NC}"
+if [ -d ".git" ]; then
+    echo "  - Pre-commit hooks installed"
+else
+    echo "  - Skipped (not a git repository)"
+fi
 echo ""
 echo -e "${GREEN}Database setup:${NC}"
 if command -v docker &> /dev/null && docker ps | grep -q template-fptb-db; then

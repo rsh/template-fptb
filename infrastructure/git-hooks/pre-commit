@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Pre-commit hook that runs check.sh
+# This ensures all code quality checks pass before committing
+
+echo "Running pre-commit checks..."
+echo ""
+
+# Run check.sh from the repository root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# Run check.sh
+./check.sh
+
+# Exit with the same code as check.sh
+exit $?
