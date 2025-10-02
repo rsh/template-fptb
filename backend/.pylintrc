@@ -1,0 +1,19 @@
+[MASTER]
+ignore=venv,.venv,env,.env
+
+[MESSAGES CONTROL]
+disable=
+    too-few-public-methods,
+    unused-argument,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    invalid-name,
+    fixme
+
+[FORMAT]
+max-line-length=88
+
+[DESIGN]
+max-args=7
+max-attributes=10

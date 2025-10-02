@@ -1,0 +1,63 @@
+# Environment files - NEVER commit secrets
+.env
+*.env
+!.env.example
+
+# Terraform
+infrastructure/terraform.tfvars
+infrastructure/.terraform/
+infrastructure/*.tfstate
+infrastructure/*.tfstate.*
+infrastructure/.terraform.lock.hcl
+
+# Python
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/*.so
+backend/.Python
+backend/venv/
+backend/env/
+backend/ENV/
+backend/.venv
+backend/*.egg-info/
+backend/dist/
+backend/build/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.npm
+frontend/.eslintcache
+frontend/coverage/
+*.tsbuildinfo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AWS
+.aws-sam/
+samconfig.toml
+
+# Secrets and credentials
+*.pem
+*.key
+credentials
+secrets.json
