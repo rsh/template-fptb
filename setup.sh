@@ -126,11 +126,61 @@ if command -v docker &> /dev/null; then
         if docker ps | grep -q template-fptb-db; then
             echo -e "${GREEN}✓${NC} Database is running"
         else
+            # Check if port 5432 is already in use before starting
+            if docker ps --format '{{.Names}}\t{{.Ports}}' | grep -q '0.0.0.0:5432\|:::5432'; then
+                CONFLICTING_CONTAINER=$(docker ps --format '{{.Names}}\t{{.Ports}}' | grep '0.0.0.0:5432\|:::5432' | awk '{print $1}')
+                echo -e "${RED}✗${NC} Port 5432 is already in use by container: ${YELLOW}${CONFLICTING_CONTAINER}${NC}"
+                echo ""
+                echo "The setup needs port 5432 for the PostgreSQL database."
+                echo -e "Would you like to stop and remove ${YELLOW}${CONFLICTING_CONTAINER}${NC}? [y/N]"
+                read -r response
+
+                if [[ "$response" =~ ^[Yy]$ ]]; then
+                    echo "Stopping and removing ${CONFLICTING_CONTAINER}..."
+                    docker stop "$CONFLICTING_CONTAINER"
+                    docker rm "$CONFLICTING_CONTAINER"
+                    echo -e "${GREEN}✓${NC} Container removed"
+                    echo ""
+                else
+                    echo -e "${YELLOW}⚠${NC} Setup cancelled. Please free port 5432 manually and run setup again."
+                    echo "  You can:"
+                    echo "    - Stop the container: docker stop ${CONFLICTING_CONTAINER}"
+                    echo "    - Remove the container: docker rm ${CONFLICTING_CONTAINER}"
+                    echo "    - Or modify setup.sh to use a different port"
+                    exit 1
+                fi
+            fi
+
             echo "Starting existing database container..."
             docker start template-fptb-db
             echo -e "${GREEN}✓${NC} Database started"
         fi
     else
+        # Check if port 5432 is already in use
+        if docker ps --format '{{.Names}}\t{{.Ports}}' | grep -q '0.0.0.0:5432\|:::5432'; then
+            CONFLICTING_CONTAINER=$(docker ps --format '{{.Names}}\t{{.Ports}}' | grep '0.0.0.0:5432\|:::5432' | awk '{print $1}')
+            echo -e "${RED}✗${NC} Port 5432 is already in use by container: ${YELLOW}${CONFLICTING_CONTAINER}${NC}"
+            echo ""
+            echo "The setup needs port 5432 for the PostgreSQL database."
+            echo -e "Would you like to stop and remove ${YELLOW}${CONFLICTING_CONTAINER}${NC}? [y/N]"
+            read -r response
+
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                echo "Stopping and removing ${CONFLICTING_CONTAINER}..."
+                docker stop "$CONFLICTING_CONTAINER"
+                docker rm "$CONFLICTING_CONTAINER"
+                echo -e "${GREEN}✓${NC} Container removed"
+                echo ""
+            else
+                echo -e "${YELLOW}⚠${NC} Setup cancelled. Please free port 5432 manually and run setup again."
+                echo "  You can:"
+                echo "    - Stop the container: docker stop ${CONFLICTING_CONTAINER}"
+                echo "    - Remove the container: docker rm ${CONFLICTING_CONTAINER}"
+                echo "    - Or modify setup.sh to use a different port"
+                exit 1
+            fi
+        fi
+
         echo "Creating and starting PostgreSQL container..."
         docker run --name template-fptb-db \
             -e POSTGRES_PASSWORD=devpassword \

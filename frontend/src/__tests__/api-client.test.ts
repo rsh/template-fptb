@@ -158,109 +158,108 @@ describe("ApiClient", () => {
     });
   });
 
-  describe("getCategories", () => {
-    it("gets all categories", async () => {
-      const mockCategories = [
-        { id: 1, name: "Tech", description: "Technology" },
-        { id: 2, name: "Books", description: "Books" },
+  describe("getTodos", () => {
+    it("gets all todos", async () => {
+      const mockTodos = [
+        {
+          id: 1,
+          title: "Todo 1",
+          description: "First todo",
+          status: "pending",
+          importance: 3,
+          urgency: 2,
+          importance_label: "High",
+          urgency_label: "Medium",
+          importance_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="12" height="12" fill="#F44336"/></svg>',
+          urgency_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          priority_score: 2.6,
+          owner: null,
+          created_at: "2024-01-01",
+          updated_at: "2024-01-01",
+        },
       ];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ categories: mockCategories }),
+        json: async () => ({ todos: mockTodos }),
       } as Response);
 
-      const result = await client.getCategories();
-      expect(result).toEqual(mockCategories);
+      const result = await client.getTodos();
+      expect(result).toEqual(mockTodos);
     });
   });
 
-  describe("createCategory", () => {
-    it("creates a new category", async () => {
-      const mockCategory = { id: 1, name: "Tech", description: "Technology" };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ category: mockCategory }),
-      } as Response);
-
-      const result = await client.createCategory({
-        name: "Tech",
-        description: "Technology",
-      });
-
-      expect(result).toEqual(mockCategory);
-      expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/categories",
-        expect.objectContaining({
-          method: "POST",
-        })
-      );
-    });
-  });
-
-  describe("getItems", () => {
-    it("gets all items", async () => {
-      const mockItems = [
-        { id: 1, title: "Item 1", description: "First item", status: "active" },
-        { id: 2, title: "Item 2", description: "Second item", status: "inactive" },
-      ];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ items: mockItems }),
-      } as Response);
-
-      const result = await client.getItems();
-      expect(result).toEqual(mockItems);
-    });
-  });
-
-  describe("getItem", () => {
-    it("gets a specific item", async () => {
-      const mockItem = {
+  describe("getTodo", () => {
+    it("gets a specific todo", async () => {
+      const mockTodo = {
         id: 1,
-        title: "Item 1",
-        description: "First item",
-        status: "active",
+        title: "Todo 1",
+        description: "First todo",
+        status: "pending",
+        importance: 3,
+        urgency: 2,
+        importance_label: "High",
+        urgency_label: "Medium",
+        importance_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="12" height="12" fill="#F44336"/></svg>',
+        urgency_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+        priority_score: 2.6,
+        owner: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ item: mockItem }),
+        json: async () => ({ todo: mockTodo }),
       } as Response);
 
-      const result = await client.getItem(1);
-      expect(result).toEqual(mockItem);
+      const result = await client.getTodo(1);
+      expect(result).toEqual(mockTodo);
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/items/1",
+        "http://test-api.com/api/todos/1",
         expect.any(Object)
       );
     });
   });
 
-  describe("createItem", () => {
-    it("creates a new item", async () => {
-      const mockItem = {
+  describe("createTodo", () => {
+    it("creates a new todo", async () => {
+      const mockTodo = {
         id: 1,
-        title: "New Item",
-        description: "A new item",
-        status: "active",
+        title: "New Todo",
+        description: "A new todo",
+        status: "pending",
+        importance: 2,
+        urgency: 2,
+        importance_label: "Medium",
+        urgency_label: "Medium",
+        importance_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+        urgency_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+        priority_score: 2.0,
+        owner: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ item: mockItem }),
+        json: async () => ({ todo: mockTodo }),
       } as Response);
 
-      const result = await client.createItem({
-        title: "New Item",
-        description: "A new item",
+      const result = await client.createTodo({
+        title: "New Todo",
+        description: "A new todo",
       });
 
-      expect(result).toEqual(mockItem);
+      expect(result).toEqual(mockTodo);
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/items",
+        "http://test-api.com/api/todos",
         expect.objectContaining({
           method: "POST",
         })
@@ -268,28 +267,38 @@ describe("ApiClient", () => {
     });
   });
 
-  describe("updateItem", () => {
-    it("updates an item", async () => {
-      const mockItem = {
+  describe("updateTodo", () => {
+    it("updates a todo", async () => {
+      const mockTodo = {
         id: 1,
-        title: "Updated Item",
+        title: "Updated Todo",
         description: "Updated description",
-        status: "archived",
+        status: "completed",
+        importance: 3,
+        urgency: 3,
+        importance_label: "High",
+        urgency_label: "High",
+        importance_icon: "🟥",
+        urgency_icon: "🟥",
+        priority_score: 3.0,
+        owner: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-02",
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ item: mockItem }),
+        json: async () => ({ todo: mockTodo }),
       } as Response);
 
-      const result = await client.updateItem(1, {
-        title: "Updated Item",
-        status: "archived",
+      const result = await client.updateTodo(1, {
+        title: "Updated Todo",
+        status: "completed",
       });
 
-      expect(result).toEqual(mockItem);
+      expect(result).toEqual(mockTodo);
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/items/1",
+        "http://test-api.com/api/todos/1",
         expect.objectContaining({
           method: "PATCH",
         })
@@ -297,19 +306,19 @@ describe("ApiClient", () => {
     });
   });
 
-  describe("deleteItem", () => {
-    it("deletes an item", async () => {
-      const mockResponse = { message: "Item deleted successfully" };
+  describe("deleteTodo", () => {
+    it("deletes a todo", async () => {
+      const mockResponse = { message: "Todo deleted successfully" };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.deleteItem(1);
+      const result = await client.deleteTodo(1);
       expect(result).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/items/1",
+        "http://test-api.com/api/todos/1",
         expect.objectContaining({
           method: "DELETE",
         })
@@ -324,13 +333,13 @@ describe("ApiClient", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ items: [] }),
+        json: async () => ({ todos: [] }),
       } as Response);
 
-      await authenticatedClient.getItems();
+      await authenticatedClient.getTodos();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/items",
+        "http://test-api.com/api/todos",
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: "Bearer test-token",
@@ -342,13 +351,15 @@ describe("ApiClient", () => {
     it("does not include Authorization header when no token", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ categories: [] }),
+        json: async () => ({
+          user: { id: 1, username: "test", created_at: "2024-01-01" },
+        }),
       } as Response);
 
-      await client.getCategories();
+      await client.getCurrentUser();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "http://test-api.com/api/categories",
+        "http://test-api.com/api/auth/me",
         expect.objectContaining({
           headers: expect.not.objectContaining({
             Authorization: expect.anything(),

@@ -6,9 +6,9 @@ from flask_cors import CORS
 from pydantic import ValidationError
 
 from auth import generate_token, login_required, validate_request_json
-from models import Category, Item, User, db
-from schemas import (CategoryCreateRequest, ItemCreateRequest,
-                     ItemUpdateRequest, LoginRequest, RegisterRequest)
+from models import Todo, User, db
+from schemas import (LoginRequest, RegisterRequest, TodoCreateRequest,
+                     TodoUpdateRequest)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -93,147 +93,112 @@ def get_current_user_info(current_user: User) -> tuple[dict, int]:
 
 
 # ============================================================================
-# Category Endpoints
+# Todo Endpoints
 # ============================================================================
 
 
-@app.route("/api/categories", methods=["GET"])
-def get_categories() -> tuple[dict, int]:
-    """Get all categories."""
-    categories = Category.query.order_by(Category.name).all()
-    return {"categories": [cat.to_dict() for cat in categories]}, 200
-
-
-@app.route("/api/categories", methods=["POST"])
+@app.route("/api/todos", methods=["GET"])
 @login_required
-@validate_request_json(["name"])
-def create_category(current_user: User) -> tuple[dict, int]:
-    """Create a new category."""
-    try:
-        data = CategoryCreateRequest(**request.get_json())
-    except ValidationError as e:
-        return {"error": e.errors()}, 400
-
-    # Check if category already exists
-    if Category.query.filter_by(name=data.name).first():
-        return {"error": "Category already exists"}, 400
-
-    category = Category(name=data.name, description=data.description)
-    db.session.add(category)
-    db.session.commit()
-
-    return {"category": category.to_dict()}, 201
-
-
-# ============================================================================
-# Item Endpoints
-# ============================================================================
-
-
-@app.route("/api/items", methods=["GET"])
-@login_required
-def get_items(current_user: User) -> tuple[dict, int]:
-    """Get all items for the current user."""
-    items = (
-        Item.query.filter_by(owner_id=current_user.id)
-        .order_by(Item.created_at.desc())
+def get_todos(current_user: User) -> tuple[dict, int]:
+    """Get all todos for the current user, sorted by priority."""
+    todos = (
+        Todo.query.filter_by(owner_id=current_user.id)
+        .order_by(
+            # Sort by priority score (importance 60%, urgency 40%)
+            (Todo.importance * 0.6 + Todo.urgency * 0.4).desc(),
+            Todo.created_at.asc(),
+        )
         .all()
     )
-    return {"items": [item.to_dict() for item in items]}, 200
+    return {"todos": [todo.to_dict() for todo in todos]}, 200
 
 
-@app.route("/api/items/<int:item_id>", methods=["GET"])
+@app.route("/api/todos/<int:todo_id>", methods=["GET"])
 @login_required
-def get_item(item_id: int, current_user: User) -> tuple[dict, int]:
-    """Get a specific item."""
-    item = db.session.get(Item, item_id)
-    if not item:
-        return {"error": "Item not found"}, 404
+def get_todo(todo_id: int, current_user: User) -> tuple[dict, int]:
+    """Get a specific todo."""
+    todo = db.session.get(Todo, todo_id)
+    if not todo:
+        return {"error": "Todo not found"}, 404
 
-    if item.owner_id != current_user.id:
+    if todo.owner_id != current_user.id:
         return {"error": "Unauthorized"}, 403
 
-    return {"item": item.to_dict()}, 200
+    return {"todo": todo.to_dict()}, 200
 
 
-@app.route("/api/items", methods=["POST"])
+@app.route("/api/todos", methods=["POST"])
 @login_required
 @validate_request_json(["title"])
-def create_item(current_user: User) -> tuple[dict, int]:
-    """Create a new item."""
+def create_todo(current_user: User) -> tuple[dict, int]:
+    """Create a new todo."""
     try:
-        data = ItemCreateRequest(**request.get_json())
+        data = TodoCreateRequest(**request.get_json())
     except ValidationError as e:
         return {"error": e.errors()}, 400
 
-    # Validate category if provided
-    if data.category_id:
-        category = db.session.get(Category, data.category_id)
-        if not category:
-            return {"error": "Category not found"}, 404
-
-    item = Item(
+    todo = Todo(
         title=data.title,
         description=data.description,
-        category_id=data.category_id,
+        importance=data.importance,
+        urgency=data.urgency,
         status=data.status,
         owner_id=current_user.id,
     )
-    db.session.add(item)
+    db.session.add(todo)
     db.session.commit()
 
-    return {"item": item.to_dict()}, 201
+    return {"todo": todo.to_dict()}, 201
 
 
-@app.route("/api/items/<int:item_id>", methods=["PATCH"])
+@app.route("/api/todos/<int:todo_id>", methods=["PATCH"])
 @login_required
-def update_item(item_id: int, current_user: User) -> tuple[dict, int]:
-    """Update an item."""
-    item = db.session.get(Item, item_id)
-    if not item:
-        return {"error": "Item not found"}, 404
+def update_todo(todo_id: int, current_user: User) -> tuple[dict, int]:
+    """Update a todo."""
+    todo = db.session.get(Todo, todo_id)
+    if not todo:
+        return {"error": "Todo not found"}, 404
 
-    if item.owner_id != current_user.id:
+    if todo.owner_id != current_user.id:
         return {"error": "Unauthorized"}, 403
 
     try:
-        data = ItemUpdateRequest(**request.get_json())
+        data = TodoUpdateRequest(**request.get_json())
     except ValidationError as e:
         return {"error": e.errors()}, 400
 
     # Update fields if provided
     if data.title is not None:
-        item.title = data.title
+        todo.title = data.title
     if data.description is not None:
-        item.description = data.description
-    if data.category_id is not None:
-        category = db.session.get(Category, data.category_id)
-        if not category:
-            return {"error": "Category not found"}, 404
-        item.category_id = data.category_id
+        todo.description = data.description
+    if data.importance is not None:
+        todo.importance = data.importance
+    if data.urgency is not None:
+        todo.urgency = data.urgency
     if data.status is not None:
-        item.status = data.status
+        todo.status = data.status
 
     db.session.commit()
 
-    return {"item": item.to_dict()}, 200
+    return {"todo": todo.to_dict()}, 200
 
 
-@app.route("/api/items/<int:item_id>", methods=["DELETE"])
+@app.route("/api/todos/<int:todo_id>", methods=["DELETE"])
 @login_required
-def delete_item(item_id: int, current_user: User) -> tuple[dict, int]:
-    """Delete an item."""
-    item = db.session.get(Item, item_id)
-    if not item:
-        return {"error": "Item not found"}, 404
+def delete_todo(todo_id: int, current_user: User) -> tuple[dict, int]:
+    """Delete a todo."""
+    todo = db.session.get(Todo, todo_id)
+    if not todo:
+        return {"error": "Todo not found"}, 404
 
-    if item.owner_id != current_user.id:
+    if todo.owner_id != current_user.id:
         return {"error": "Unauthorized"}, 403
 
-    db.session.delete(item)
+    db.session.delete(todo)
     db.session.commit()
 
-    return {"message": "Item deleted successfully"}, 200
+    return {"message": "Todo deleted successfully"}, 200
 
 
 # ============================================================================

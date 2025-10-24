@@ -9,20 +9,19 @@ export interface User {
   created_at: string;
 }
 
-export interface Category {
-  id: number;
-  name: string;
-  description: string | null;
-  created_at: string;
-}
-
-export interface Item {
+export interface Todo {
   id: number;
   title: string;
   description: string | null;
-  category: Category | null;
   owner: User | null;
-  status: "active" | "inactive" | "archived";
+  status: "pending" | "in_progress" | "completed";
+  importance: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  urgency: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  importance_label: string;
+  urgency_label: string;
+  importance_icon: string;
+  urgency_icon: string;
+  priority_score: number;
   created_at: string;
   updated_at: string;
 }
@@ -44,23 +43,20 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface ItemCreateRequest {
+export interface TodoCreateRequest {
   title: string;
   description?: string;
-  category_id?: number;
-  status?: "active" | "inactive" | "archived";
+  importance?: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  urgency?: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  status?: "pending" | "in_progress" | "completed";
 }
 
-export interface ItemUpdateRequest {
+export interface TodoUpdateRequest {
   title?: string;
   description?: string;
-  category_id?: number;
-  status?: "active" | "inactive" | "archived";
-}
-
-export interface CategoryCreateRequest {
-  name: string;
-  description?: string;
+  importance?: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  urgency?: number; // 1=Low, 2=Medium, 3=High, 4=Critical
+  status?: "pending" | "in_progress" | "completed";
 }
 
 export interface ApiError {

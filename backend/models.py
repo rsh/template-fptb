@@ -27,10 +27,10 @@ class User(db.Model):  # type: ignore  # db.Model lacks type stubs
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # Relationships - customize based on your domain
-    items = cast(
-        List["Item"],
-        db.relationship("Item", back_populates="owner", cascade="all, delete-orphan"),
+    # Relationships
+    todos = cast(
+        List["Todo"],
+        db.relationship("Todo", back_populates="owner", cascade="all, delete-orphan"),
     )
 
     def set_password(self, password: str) -> None:
@@ -53,45 +53,21 @@ class User(db.Model):  # type: ignore  # db.Model lacks type stubs
         return data
 
 
-class Category(db.Model):  # type: ignore  # db.Model lacks type stubs
-    """Example category model - demonstrates a simple lookup table."""
+class Todo(db.Model):  # type: ignore  # db.Model lacks type stubs
+    """Todo model with importance and urgency prioritization."""
 
-    __tablename__ = "categories"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(
-        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
-
-    # Relationships
-    items = cast(
-        List["Item"],
-        db.relationship("Item", back_populates="category"),
-    )
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert category to dictionary."""
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "created_at": self.created_at.isoformat(),
-        }
-
-
-class Item(db.Model):  # type: ignore  # db.Model lacks type stubs
-    """Example item model - demonstrates a typical domain entity with relationships."""
-
-    __tablename__ = "items"
+    __tablename__ = "todos"
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    status = db.Column(db.String(50), nullable=False, default="active")
+    status = db.Column(db.String(50), nullable=False, default="pending")
+
+    # Importance and Urgency: 1=Low, 2=Medium, 3=High, 4=Critical
+    importance = db.Column(db.Integer, nullable=False, default=2)
+    urgency = db.Column(db.Integer, nullable=False, default=2)
+
     created_at = db.Column(
         db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
@@ -103,18 +79,75 @@ class Item(db.Model):  # type: ignore  # db.Model lacks type stubs
     )
 
     # Relationships
-    category = cast("Category", db.relationship("Category", back_populates="items"))
-    owner = cast("User", db.relationship("User", back_populates="items"))
+    owner = cast("User", db.relationship("User", back_populates="todos"))
+
+    # Add check constraints for importance and urgency values
+    __table_args__ = (
+        db.CheckConstraint("importance BETWEEN 1 AND 4", name="check_importance"),
+        db.CheckConstraint("urgency BETWEEN 1 AND 4", name="check_urgency"),
+    )
+
+    def priority_score(self) -> float:
+        """Calculate weighted priority score (importance 60%, urgency 40%)."""
+        return (self.importance * 0.6) + (self.urgency * 0.4)
+
+    @staticmethod
+    def get_level_name(level: int) -> str:
+        """Get name for importance/urgency level."""
+        levels = {1: "Low", 2: "Medium", 3: "High", 4: "Critical"}
+        return levels.get(level, "Medium")
+
+    @staticmethod
+    def get_level_icon(level: int) -> str:
+        """Get SVG icon for importance/urgency level."""
+        icons = {
+            1: (
+                '<svg width="16" height="16" viewBox="0 0 16 16" '
+                'xmlns="http://www.w3.org/2000/svg">'
+                '<circle cx="8" cy="8" r="7" fill="#FFC107"/></svg>'
+            ),  # Low - yellow circle
+            2: (
+                '<svg width="16" height="16" viewBox="0 0 16 16" '
+                'xmlns="http://www.w3.org/2000/svg">'
+                '<path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>'
+            ),  # Medium - deep orange triangle
+            3: (
+                '<svg width="16" height="16" viewBox="0 0 16 16" '
+                'xmlns="http://www.w3.org/2000/svg">'
+                '<rect x="2" y="2" width="12" height="12" fill="#F44336"/>'
+                "</svg>"
+            ),  # High - red square
+            4: (
+                '<svg width="16" height="16" viewBox="0 0 16 16" '
+                'xmlns="http://www.w3.org/2000/svg">'
+                '<path d="M8 1 L10 6 L15 7 L11 11 L12 16 L8 13 L4 16 '
+                'L5 11 L1 7 L6 6 Z" fill="#2196F3"/></svg>'
+            ),  # Critical - blue star
+        }
+        return icons.get(
+            level,
+            (
+                '<svg width="16" height="16" viewBox="0 0 16 16" '
+                'xmlns="http://www.w3.org/2000/svg">'
+                '<path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>'
+            ),
+        )
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert item to dictionary."""
+        """Convert todo to dictionary."""
         return {
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "category": self.category.to_dict() if self.category else None,
             "owner": self.owner.to_dict() if self.owner else None,
             "status": self.status,
+            "importance": self.importance,
+            "urgency": self.urgency,
+            "importance_label": self.get_level_name(self.importance),
+            "urgency_label": self.get_level_name(self.urgency),
+            "importance_icon": self.get_level_icon(self.importance),
+            "urgency_icon": self.get_level_icon(self.urgency),
+            "priority_score": self.priority_score(),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

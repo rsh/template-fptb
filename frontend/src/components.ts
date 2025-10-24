@@ -2,7 +2,33 @@
  * Reusable UI components
  */
 
-import type { Category, Item } from "./api";
+import type { Todo } from "./api";
+
+/**
+ * Helper function to get SVG icon for a level
+ */
+function getLevelSvg(level: number): string {
+  const svgs: Record<number, string> = {
+    1: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 6px;"><circle cx="8" cy="8" r="7" fill="#FFC107"/></svg>',
+    2: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 6px;"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+    3: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 6px;"><rect x="2" y="2" width="12" height="12" fill="#F44336"/></svg>',
+    4: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 6px;"><path d="M8 1 L10 6 L15 7 L11 11 L12 16 L8 13 L4 16 L5 11 L1 7 L6 6 Z" fill="#2196F3"/></svg>',
+  };
+  return svgs[level] !== undefined ? svgs[level] : svgs[2]!;
+}
+
+/**
+ * Helper function to get level label
+ */
+function getLevelLabel(level: number): string {
+  const labels: Record<number, string> = {
+    1: "Low",
+    2: "Medium",
+    3: "High",
+    4: "Critical",
+  };
+  return labels[level] || "Medium";
+}
 
 /**
  * Create login form component
@@ -57,105 +83,168 @@ export function createRegisterForm(): HTMLElement {
 }
 
 /**
- * Create item form component
+ * Create todo form component
  */
-export function createItemForm(categories: Category[], item?: Item): HTMLElement {
+export function createTodoForm(todo?: Todo): HTMLElement {
   const form = document.createElement("form");
   form.className = "card p-4 mb-4";
 
-  const categoryOptions = categories
-    .map(
-      (cat) =>
-        `<option value="${cat.id}" ${item?.category?.id === cat.id ? "selected" : ""}>
-          ${cat.name}
-        </option>`
-    )
-    .join("");
-
   form.innerHTML = `
-    <h3 class="mb-3">${item ? "Edit Item" : "Create New Item"}</h3>
+    <h3 class="mb-3">${todo ? "Edit Todo" : "Create New Todo"}</h3>
     <div class="mb-3">
-      <label for="item-title" class="form-label">Title</label>
-      <input type="text" class="form-control" id="item-title" name="title"
-             value="${item?.title || ""}" required>
+      <label for="todo-title" class="form-label">Title</label>
+      <input type="text" class="form-control" id="todo-title" name="title"
+             value="${escapeHtml(todo?.title || "")}" required>
     </div>
     <div class="mb-3">
-      <label for="item-description" class="form-label">Description</label>
-      <textarea class="form-control" id="item-description" name="description" rows="3">${item?.description || ""}</textarea>
+      <label for="todo-description" class="form-label">Description</label>
+      <textarea class="form-control" id="todo-description" name="description" rows="3">${escapeHtml(todo?.description || "")}</textarea>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Importance</label>
+        <input type="hidden" id="todo-importance" name="importance" value="${todo?.importance || 2}">
+        <div class="dropdown w-100">
+          <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="importance-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="importance-selected">${getLevelSvg(todo?.importance || 2)}${getLevelLabel(todo?.importance || 2)}</span>
+            <span>▼</span>
+          </button>
+          <ul class="dropdown-menu w-100" aria-labelledby="importance-dropdown">
+            <li><a class="dropdown-item importance-option" href="#" data-value="1">${getLevelSvg(1)}Low</a></li>
+            <li><a class="dropdown-item importance-option" href="#" data-value="2">${getLevelSvg(2)}Medium</a></li>
+            <li><a class="dropdown-item importance-option" href="#" data-value="3">${getLevelSvg(3)}High</a></li>
+            <li><a class="dropdown-item importance-option" href="#" data-value="4">${getLevelSvg(4)}Critical</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Urgency</label>
+        <input type="hidden" id="todo-urgency" name="urgency" value="${todo?.urgency || 2}">
+        <div class="dropdown w-100">
+          <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="urgency-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="urgency-selected">${getLevelSvg(todo?.urgency || 2)}${getLevelLabel(todo?.urgency || 2)}</span>
+            <span>▼</span>
+          </button>
+          <ul class="dropdown-menu w-100" aria-labelledby="urgency-dropdown">
+            <li><a class="dropdown-item urgency-option" href="#" data-value="1">${getLevelSvg(1)}Low</a></li>
+            <li><a class="dropdown-item urgency-option" href="#" data-value="2">${getLevelSvg(2)}Medium</a></li>
+            <li><a class="dropdown-item urgency-option" href="#" data-value="3">${getLevelSvg(3)}High</a></li>
+            <li><a class="dropdown-item urgency-option" href="#" data-value="4">${getLevelSvg(4)}Critical</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
     <div class="mb-3">
-      <label for="item-category" class="form-label">Category</label>
-      <select class="form-select" id="item-category" name="category_id">
-        <option value="">No category</option>
-        ${categoryOptions}
-      </select>
-    </div>
-    <div class="mb-3">
-      <label for="item-status" class="form-label">Status</label>
-      <select class="form-select" id="item-status" name="status">
-        <option value="active" ${item?.status === "active" ? "selected" : ""}>Active</option>
-        <option value="inactive" ${item?.status === "inactive" ? "selected" : ""}>Inactive</option>
-        <option value="archived" ${item?.status === "archived" ? "selected" : ""}>Archived</option>
+      <label for="todo-status" class="form-label">Status</label>
+      <select class="form-select" id="todo-status" name="status">
+        <option value="pending" ${!todo || todo?.status === "pending" ? "selected" : ""}>Pending</option>
+        <option value="in_progress" ${todo?.status === "in_progress" ? "selected" : ""}>In Progress</option>
+        <option value="completed" ${todo?.status === "completed" ? "selected" : ""}>Completed</option>
       </select>
     </div>
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">
-        ${item ? "Update" : "Create"} Item
+        ${todo ? "Update" : "Create"} Todo
       </button>
-      ${item ? '<button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>' : ""}
+      ${todo ? '<button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>' : ""}
     </div>
   `;
+
+  // Add event listeners for dropdown selections
+  setTimeout(() => {
+    const importanceOptions = form.querySelectorAll(".importance-option");
+    const urgencyOptions = form.querySelectorAll(".urgency-option");
+
+    importanceOptions.forEach((option) => {
+      option.addEventListener("click", (e) => {
+        e.preventDefault();
+        const value = (e.currentTarget as HTMLElement).dataset["value"] || "2";
+        const hiddenInput = form.querySelector("#todo-importance") as HTMLInputElement;
+        const selectedSpan = form.querySelector("#importance-selected") as HTMLElement;
+        if (hiddenInput) hiddenInput.value = value;
+        if (selectedSpan) {
+          selectedSpan.innerHTML = `${getLevelSvg(parseInt(value))}${getLevelLabel(parseInt(value))}`;
+        }
+      });
+    });
+
+    urgencyOptions.forEach((option) => {
+      option.addEventListener("click", (e) => {
+        e.preventDefault();
+        const value = (e.currentTarget as HTMLElement).dataset["value"] || "2";
+        const hiddenInput = form.querySelector("#todo-urgency") as HTMLInputElement;
+        const selectedSpan = form.querySelector("#urgency-selected") as HTMLElement;
+        if (hiddenInput) hiddenInput.value = value;
+        if (selectedSpan) {
+          selectedSpan.innerHTML = `${getLevelSvg(parseInt(value))}${getLevelLabel(parseInt(value))}`;
+        }
+      });
+    });
+  }, 0);
+
   return form;
 }
 
 /**
- * Create items table component
+ * Create todos table component
  */
-export function createItemsTable(items: Item[]): HTMLElement {
+export function createTodosTable(todos: Todo[]): HTMLElement {
   const container = document.createElement("div");
   container.className = "card p-4";
 
-  if (items.length === 0) {
+  if (todos.length === 0) {
     container.innerHTML = `
-      <h3 class="mb-3">Your Items</h3>
-      <p class="text-muted">No items yet. Create your first item above!</p>
+      <h3 class="mb-3">Your Todos</h3>
+      <p class="text-muted">No todos yet. Create your first todo above!</p>
     `;
     return container;
   }
 
   const tableHtml = `
-    <h3 class="mb-3">Your Items</h3>
+    <h3 class="mb-3">Your Todos (sorted by priority)</h3>
     <div class="table-responsive">
       <table class="table table-hover">
         <thead>
           <tr>
             <th>Title</th>
             <th>Description</th>
-            <th>Category</th>
+            <th style="text-align: center;">Importance</th>
+            <th style="text-align: center;">Urgency</th>
+            <th style="text-align: center;">Priority</th>
             <th>Status</th>
             <th>Created</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          ${items
+          ${todos
             .map(
-              (item) => `
-            <tr data-item-id="${item.id}">
-              <td><strong>${escapeHtml(item.title)}</strong></td>
-              <td>${item.description ? escapeHtml(item.description) : "<em>No description</em>"}</td>
-              <td>${item.category ? escapeHtml(item.category.name) : "<em>None</em>"}</td>
+              (todo) => `
+            <tr data-todo-id="${todo.id}">
+              <td><strong>${escapeHtml(todo.title)}</strong></td>
+              <td>${todo.description ? escapeHtml(todo.description) : "<em>No description</em>"}</td>
+              <td style="text-align: center;" title="${todo.importance_label}">
+                <span style="font-size: 1.3em;">${todo.importance_icon}</span>
+                <br><small class="text-muted">${todo.importance_label}</small>
+              </td>
+              <td style="text-align: center;" title="${todo.urgency_label}">
+                <span style="font-size: 1.3em;">${todo.urgency_icon}</span>
+                <br><small class="text-muted">${todo.urgency_label}</small>
+              </td>
+              <td style="text-align: center;">
+                <strong>${todo.priority_score.toFixed(1)}</strong>
+              </td>
               <td>
-                <span class="badge bg-${getStatusColor(item.status)}">
-                  ${item.status}
+                <span class="badge bg-${getStatusColor(todo.status)}">
+                  ${todo.status}
                 </span>
               </td>
-              <td>${formatDate(item.created_at)}</td>
+              <td>${formatDate(todo.created_at)}</td>
               <td>
-                <button class="btn btn-sm btn-outline-primary edit-item" data-item-id="${item.id}">
+                <button class="btn btn-sm btn-outline-primary edit-todo" data-todo-id="${todo.id}">
                   Edit
                 </button>
-                <button class="btn btn-sm btn-outline-danger delete-item" data-item-id="${item.id}">
+                <button class="btn btn-sm btn-outline-danger delete-todo" data-todo-id="${todo.id}">
                   Delete
                 </button>
               </td>
@@ -170,27 +259,6 @@ export function createItemsTable(items: Item[]): HTMLElement {
 
   container.innerHTML = tableHtml;
   return container;
-}
-
-/**
- * Create category form component
- */
-export function createCategoryForm(): HTMLElement {
-  const form = document.createElement("form");
-  form.className = "card p-4 mb-4";
-  form.innerHTML = `
-    <h3 class="mb-3">Create New Category</h3>
-    <div class="mb-3">
-      <label for="category-name" class="form-label">Name</label>
-      <input type="text" class="form-control" id="category-name" name="name" required>
-    </div>
-    <div class="mb-3">
-      <label for="category-description" class="form-label">Description</label>
-      <textarea class="form-control" id="category-description" name="description" rows="2"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Create Category</button>
-  `;
-  return form;
 }
 
 /**
@@ -244,12 +312,12 @@ function formatDate(dateString: string): string {
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case "active":
-      return "success";
-    case "inactive":
+    case "pending":
       return "warning";
-    case "archived":
-      return "secondary";
+    case "in_progress":
+      return "info";
+    case "completed":
+      return "success";
     default:
       return "secondary";
   }

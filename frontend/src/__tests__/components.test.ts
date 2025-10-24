@@ -5,13 +5,12 @@
 import {
   createLoginForm,
   createRegisterForm,
-  createItemForm,
-  createItemsTable,
-  createCategoryForm,
+  createTodoForm,
+  createTodosTable,
   showError,
   showSuccess,
 } from "../components";
-import type { Category, Item } from "../api";
+import type { Todo } from "../api";
 
 describe("Components", () => {
   beforeEach(() => {
@@ -59,166 +58,170 @@ describe("Components", () => {
     });
   });
 
-  describe("createItemForm", () => {
-    const mockCategories: Category[] = [
-      { id: 1, name: "Tech", description: "Technology", created_at: "2024-01-01" },
-      { id: 2, name: "Books", description: "Books", created_at: "2024-01-01" },
-    ];
-
-    it("creates an empty form for new items", () => {
-      const form = createItemForm(mockCategories);
+  describe("createTodoForm", () => {
+    it("creates an empty form for new todos", () => {
+      const form = createTodoForm();
       expect(form.tagName).toBe("FORM");
-      expect(form.querySelector("#item-title")).toBeTruthy();
-      expect(form.querySelector("#item-description")).toBeTruthy();
-      expect(form.querySelector("#item-category")).toBeTruthy();
-      expect(form.querySelector("#item-status")).toBeTruthy();
-      expect(form.textContent).toContain("Create New Item");
+      expect(form.querySelector("#todo-title")).toBeTruthy();
+      expect(form.querySelector("#todo-description")).toBeTruthy();
+      expect(form.querySelector("#todo-importance")).toBeTruthy();
+      expect(form.querySelector("#todo-urgency")).toBeTruthy();
+      expect(form.querySelector("#todo-status")).toBeTruthy();
+      expect(form.textContent).toContain("Create New Todo");
     });
 
-    it("populates form with existing item data", () => {
-      const mockItem: Item = {
+    it("populates form with existing todo data", () => {
+      const mockTodo: Todo = {
         id: 1,
-        title: "Test Item",
+        title: "Test Todo",
         description: "Test description",
-        category: mockCategories[0],
-        status: "active",
+        status: "in_progress",
+        importance: 3,
+        urgency: 2,
+        importance_label: "High",
+        urgency_label: "Medium",
+        importance_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="12" height="12" fill="#F44336"/></svg>',
+        urgency_icon:
+          '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+        priority_score: 2.6,
+        owner: null,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
-        owner: null,
       };
 
-      const form = createItemForm(mockCategories, mockItem);
-      const titleInput = form.querySelector("#item-title") as HTMLInputElement;
+      const form = createTodoForm(mockTodo);
+      const titleInput = form.querySelector("#todo-title") as HTMLInputElement;
       const descriptionInput = form.querySelector(
-        "#item-description"
+        "#todo-description"
       ) as HTMLTextAreaElement;
-      const statusSelect = form.querySelector("#item-status") as HTMLSelectElement;
+      const statusSelect = form.querySelector("#todo-status") as HTMLSelectElement;
+      const importanceSelect = form.querySelector(
+        "#todo-importance"
+      ) as HTMLSelectElement;
+      const urgencySelect = form.querySelector("#todo-urgency") as HTMLSelectElement;
 
-      expect(titleInput.value).toBe("Test Item");
+      expect(titleInput.value).toBe("Test Todo");
       expect(descriptionInput.value).toBe("Test description");
-      expect(statusSelect.value).toBe("active");
-      expect(form.textContent).toContain("Edit Item");
+      expect(statusSelect.value).toBe("in_progress");
+      expect(importanceSelect.value).toBe("3");
+      expect(urgencySelect.value).toBe("2");
+      expect(form.textContent).toContain("Edit Todo");
       expect(form.querySelector("#cancel-edit")).toBeTruthy();
-    });
-
-    it("includes all categories as options", () => {
-      const form = createItemForm(mockCategories);
-      const categorySelect = form.querySelector("#item-category") as HTMLSelectElement;
-      const options = Array.from(categorySelect.options);
-
-      expect(options.length).toBe(3); // "No category" + 2 categories
-      expect(options[1].value).toBe("1");
-      expect(options[1].textContent).toContain("Tech");
-      expect(options[2].value).toBe("2");
-      expect(options[2].textContent).toContain("Books");
     });
   });
 
-  describe("createItemsTable", () => {
-    it("shows empty state when no items", () => {
-      const table = createItemsTable([]);
-      expect(table.textContent).toContain("No items yet");
+  describe("createTodosTable", () => {
+    it("shows empty state when no todos", () => {
+      const table = createTodosTable([]);
+      expect(table.textContent).toContain("No todos yet");
     });
 
-    it("creates table with items", () => {
-      const mockItems: Item[] = [
+    it("creates table with todos", () => {
+      const mockTodos: Todo[] = [
         {
           id: 1,
-          title: "Item 1",
+          title: "Todo 1",
           description: "Description 1",
-          category: { id: 1, name: "Tech", description: "", created_at: "2024-01-01" },
-          status: "active",
+          status: "pending",
+          importance: 3,
+          urgency: 2,
+          importance_label: "High",
+          urgency_label: "Medium",
+          importance_icon: "🟥",
+          urgency_icon: "🔺",
+          priority_score: 2.6,
+          owner: null,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
-          owner: null,
         },
         {
           id: 2,
-          title: "Item 2",
+          title: "Todo 2",
           description: null,
-          category: null,
-          status: "inactive",
+          status: "completed",
+          importance: 2,
+          urgency: 2,
+          importance_label: "Medium",
+          urgency_label: "Medium",
+          importance_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          urgency_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          priority_score: 2.0,
+          owner: null,
           created_at: "2024-01-02T00:00:00Z",
           updated_at: "2024-01-02T00:00:00Z",
-          owner: null,
         },
       ];
 
-      const table = createItemsTable(mockItems);
+      const table = createTodosTable(mockTodos);
       expect(table.querySelector("table")).toBeTruthy();
-      expect(table.textContent).toContain("Item 1");
-      expect(table.textContent).toContain("Item 2");
-      expect(table.textContent).toContain("Tech");
+      expect(table.textContent).toContain("Todo 1");
+      expect(table.textContent).toContain("Todo 2");
       expect(table.textContent).toContain("No description");
-      expect(table.textContent).toContain("None"); // No category for item 2
     });
 
-    it("includes edit and delete buttons for each item", () => {
-      const mockItems: Item[] = [
+    it("includes edit and delete buttons for each todo", () => {
+      const mockTodos: Todo[] = [
         {
           id: 1,
-          title: "Item 1",
+          title: "Todo 1",
           description: "Description 1",
-          category: null,
-          status: "active",
+          status: "pending",
+          importance: 2,
+          urgency: 2,
+          importance_label: "Medium",
+          urgency_label: "Medium",
+          importance_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          urgency_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          priority_score: 2.0,
+          owner: null,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
-          owner: null,
         },
       ];
 
-      const table = createItemsTable(mockItems);
-      const editButton = table.querySelector(".edit-item") as HTMLButtonElement;
-      const deleteButton = table.querySelector(".delete-item") as HTMLButtonElement;
+      const table = createTodosTable(mockTodos);
+      const editButton = table.querySelector(".edit-todo") as HTMLButtonElement;
+      const deleteButton = table.querySelector(".delete-todo") as HTMLButtonElement;
 
       expect(editButton).toBeTruthy();
       expect(deleteButton).toBeTruthy();
-      expect(editButton.dataset.itemId).toBe("1");
-      expect(deleteButton.dataset.itemId).toBe("1");
+      expect(editButton.dataset.todoId).toBe("1");
+      expect(deleteButton.dataset.todoId).toBe("1");
     });
 
-    it("escapes HTML in item data", () => {
-      const mockItems: Item[] = [
+    it("escapes HTML in todo data", () => {
+      const mockTodos: Todo[] = [
         {
           id: 1,
           title: "<script>alert('xss')</script>",
           description: "<b>Bold</b>",
-          category: {
-            id: 1,
-            name: "<em>Cat</em>",
-            description: "",
-            created_at: "2024-01-01",
-          },
-          status: "active",
+          status: "pending",
+          importance: 2,
+          urgency: 2,
+          importance_label: "Medium",
+          urgency_label: "Medium",
+          importance_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          urgency_icon:
+            '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 2 L14 14 L2 14 Z" fill="#FF7811"/></svg>',
+          priority_score: 2.0,
+          owner: null,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
-          owner: null,
         },
       ];
 
-      const table = createItemsTable(mockItems);
+      const table = createTodosTable(mockTodos);
       const html = table.innerHTML;
 
       // HTML should be escaped
       expect(html).toContain("&lt;script&gt;");
       expect(html).toContain("&lt;b&gt;");
-      expect(html).toContain("&lt;em&gt;");
-    });
-  });
-
-  describe("createCategoryForm", () => {
-    it("creates a category form with name and description fields", () => {
-      const form = createCategoryForm();
-      expect(form.tagName).toBe("FORM");
-      expect(form.querySelector("#category-name")).toBeTruthy();
-      expect(form.querySelector("#category-description")).toBeTruthy();
-      expect(form.querySelector('button[type="submit"]')).toBeTruthy();
-    });
-
-    it("has required attribute on name field", () => {
-      const form = createCategoryForm();
-      const nameInput = form.querySelector("#category-name") as HTMLInputElement;
-      expect(nameInput.required).toBe(true);
     });
   });
 

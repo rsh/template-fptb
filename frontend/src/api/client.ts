@@ -6,13 +6,11 @@
 import type {
   ApiError,
   AuthResponse,
-  Category,
-  CategoryCreateRequest,
-  Item,
-  ItemCreateRequest,
-  ItemUpdateRequest,
   LoginRequest,
   RegisterRequest,
+  Todo,
+  TodoCreateRequest,
+  TodoUpdateRequest,
   User,
 } from "./types";
 
@@ -141,72 +139,51 @@ export class ApiClient {
     return response.user;
   }
 
-  // Category methods
+  // Todo methods
 
   /**
-   * Get all categories
+   * Get all todos for current user (sorted by priority)
    */
-  public async getCategories(): Promise<Category[]> {
-    const response = await this.request<{ categories: Category[] }>("/api/categories");
-    return response.categories;
+  public async getTodos(): Promise<Todo[]> {
+    const response = await this.request<{ todos: Todo[] }>("/api/todos");
+    return response.todos;
   }
 
   /**
-   * Create a new category
+   * Get todo details
    */
-  public async createCategory(data: CategoryCreateRequest): Promise<Category> {
-    const response = await this.request<{ category: Category }>("/api/categories", {
+  public async getTodo(todoId: number): Promise<Todo> {
+    const response = await this.request<{ todo: Todo }>(`/api/todos/${todoId}`);
+    return response.todo;
+  }
+
+  /**
+   * Create a new todo
+   */
+  public async createTodo(data: TodoCreateRequest): Promise<Todo> {
+    const response = await this.request<{ todo: Todo }>("/api/todos", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.category;
-  }
-
-  // Item methods
-
-  /**
-   * Get all items for current user
-   */
-  public async getItems(): Promise<Item[]> {
-    const response = await this.request<{ items: Item[] }>("/api/items");
-    return response.items;
+    return response.todo;
   }
 
   /**
-   * Get item details
+   * Update a todo
    */
-  public async getItem(itemId: number): Promise<Item> {
-    const response = await this.request<{ item: Item }>(`/api/items/${itemId}`);
-    return response.item;
-  }
-
-  /**
-   * Create a new item
-   */
-  public async createItem(data: ItemCreateRequest): Promise<Item> {
-    const response = await this.request<{ item: Item }>("/api/items", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    return response.item;
-  }
-
-  /**
-   * Update an item
-   */
-  public async updateItem(itemId: number, data: ItemUpdateRequest): Promise<Item> {
-    const response = await this.request<{ item: Item }>(`/api/items/${itemId}`, {
+  public async updateTodo(todoId: number, data: TodoUpdateRequest): Promise<Todo> {
+    const response = await this.request<{ todo: Todo }>(`/api/todos/${todoId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     });
-    return response.item;
+    return response.todo;
   }
 
   /**
-   * Delete an item
+   * Delete a todo
    */
-  public async deleteItem(itemId: number): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`/api/items/${itemId}`, {
+  public async deleteTodo(todoId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/api/todos/${todoId}`, {
       method: "DELETE",
     });
   }

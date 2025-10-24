@@ -29,26 +29,21 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class ItemCreateRequest(BaseModel):
-    """Schema for creating an item."""
+class TodoCreateRequest(BaseModel):
+    """Schema for creating a todo."""
 
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = None
-    category_id: Optional[int] = None
-    status: str = Field(default="active", pattern="^(active|inactive|archived)$")
+    importance: int = Field(default=2, ge=1, le=4)
+    urgency: int = Field(default=2, ge=1, le=4)
+    status: str = Field(default="pending", pattern="^(pending|in_progress|completed)$")
 
 
-class ItemUpdateRequest(BaseModel):
-    """Schema for updating an item."""
+class TodoUpdateRequest(BaseModel):
+    """Schema for updating a todo."""
 
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
-    category_id: Optional[int] = None
-    status: Optional[str] = Field(None, pattern="^(active|inactive|archived)$")
-
-
-class CategoryCreateRequest(BaseModel):
-    """Schema for creating a category."""
-
-    name: str = Field(min_length=1, max_length=100)
-    description: Optional[str] = None
+    importance: Optional[int] = Field(None, ge=1, le=4)
+    urgency: Optional[int] = Field(None, ge=1, le=4)
+    status: Optional[str] = Field(None, pattern="^(pending|in_progress|completed)$")

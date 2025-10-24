@@ -3,9 +3,13 @@
  */
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import * as bootstrap from "bootstrap";
 import "./styles.css";
 
-import { apiClient, type Category, type Item } from "./api";
+// Make Bootstrap available globally for components
+(window as typeof window & { bootstrap: typeof bootstrap }).bootstrap = bootstrap;
+
+import { apiClient, type Todo } from "./api";
 import {
   getCurrentUser,
   initAuth,
@@ -14,19 +18,17 @@ import {
   setCurrentUser,
 } from "./auth";
 import {
-  createCategoryForm,
-  createItemForm,
-  createItemsTable,
   createLoginForm,
   createRegisterForm,
+  createTodoForm,
+  createTodosTable,
   showError,
   showSuccess,
 } from "./components";
 
 // State
-let categories: Category[] = [];
-let items: Item[] = [];
-let editingItem: Item | null = null;
+let todos: Todo[] = [];
+let editingTodo: Todo | null = null;
 
 /**
  * Initialize the application
@@ -51,7 +53,7 @@ function showAuthView(showRegister = false): void {
   app.innerHTML = `
     <nav class="navbar navbar-dark bg-primary">
       <div class="container">
-        <span class="navbar-brand mb-0 h1">Web Application Template</span>
+        <span class="navbar-brand mb-0 h1">Todo Calendar</span>
       </div>
     </nav>
     <div class="container mt-5">
@@ -133,7 +135,7 @@ async function showMainView(): Promise<void> {
   app.innerHTML = `
     <nav class="navbar navbar-dark bg-primary">
       <div class="container">
-        <span class="navbar-brand mb-0 h1">Web Application Template</span>
+        <span class="navbar-brand mb-0 h1">Todo Calendar</span>
         <div class="d-flex align-items-center gap-3">
           <span class="text-white">Welcome, ${user.username}!</span>
           <button class="btn btn-outline-light btn-sm" id="logout-btn">Logout</button>
@@ -141,184 +143,145 @@ async function showMainView(): Promise<void> {
       </div>
     </nav>
     <div class="container mt-4">
-      <div class="row">
-        <div class="col-md-4">
-          <div id="category-form-container"></div>
-        </div>
-        <div class="col-md-8">
-          <div id="item-form-container"></div>
-          <div id="items-container"></div>
-        </div>
-      </div>
+      <div id="todo-form-container"></div>
+      <div id="todos-container"></div>
     </div>
   `;
 
   document.getElementById("logout-btn")?.addEventListener("click", handleLogout);
 
   await loadData();
-  renderForms();
-  renderItems();
+  renderTodoForm();
+  renderTodos();
 }
 
 /**
- * Load categories and items from API
+ * Load todos from API
  */
 async function loadData(): Promise<void> {
   try {
-    [categories, items] = await Promise.all([
-      apiClient.getCategories(),
-      apiClient.getItems(),
-    ]);
+    todos = await apiClient.getTodos();
   } catch (error) {
     showError(error instanceof Error ? error.message : "Failed to load data");
   }
 }
 
 /**
- * Render category and item forms
+ * Render todo form
  */
-function renderForms(): void {
-  // Category form
-  const categoryFormContainer = document.getElementById("category-form-container");
-  if (categoryFormContainer) {
-    categoryFormContainer.innerHTML = "";
-    const categoryForm = createCategoryForm();
-    categoryFormContainer.appendChild(categoryForm);
-    setupCategoryForm(categoryForm);
-  }
-
-  // Item form
-  const itemFormContainer = document.getElementById("item-form-container");
-  if (itemFormContainer) {
-    itemFormContainer.innerHTML = "";
-    const itemForm = createItemForm(categories, editingItem || undefined);
-    itemFormContainer.appendChild(itemForm);
-    setupItemForm(itemForm);
+function renderTodoForm(): void {
+  const todoFormContainer = document.getElementById("todo-form-container");
+  if (todoFormContainer) {
+    todoFormContainer.innerHTML = "";
+    const todoForm = createTodoForm(editingTodo || undefined);
+    todoFormContainer.appendChild(todoForm);
+    setupTodoForm(todoForm);
   }
 }
 
 /**
- * Render items table
+ * Render todos table
  */
-function renderItems(): void {
-  const itemsContainer = document.getElementById("items-container");
-  if (!itemsContainer) return;
+function renderTodos(): void {
+  const todosContainer = document.getElementById("todos-container");
+  if (!todosContainer) return;
 
-  itemsContainer.innerHTML = "";
-  const itemsTable = createItemsTable(items);
-  itemsContainer.appendChild(itemsTable);
+  todosContainer.innerHTML = "";
+  const todosTable = createTodosTable(todos);
+  todosContainer.appendChild(todosTable);
 
   // Setup event handlers for edit/delete buttons
-  itemsTable.querySelectorAll(".edit-item").forEach((btn) => {
+  todosTable.querySelectorAll(".edit-todo").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
-      const itemId = parseInt((e.target as HTMLElement).dataset["itemId"] || "0");
-      await handleEditItem(itemId);
+      const todoId = parseInt((e.target as HTMLElement).dataset["todoId"] || "0");
+      await handleEditTodo(todoId);
     });
   });
 
-  itemsTable.querySelectorAll(".delete-item").forEach((btn) => {
+  todosTable.querySelectorAll(".delete-todo").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
-      const itemId = parseInt((e.target as HTMLElement).dataset["itemId"] || "0");
-      await handleDeleteItem(itemId);
+      const todoId = parseInt((e.target as HTMLElement).dataset["todoId"] || "0");
+      await handleDeleteTodo(todoId);
     });
   });
 }
 
 /**
- * Setup category form handler
+ * Setup todo form handler
  */
-function setupCategoryForm(form: HTMLElement): void {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-
-    try {
-      const newCategory = await apiClient.createCategory({ name, description });
-      categories.push(newCategory);
-      showSuccess(`Category "${name}" created successfully`);
-      (e.target as HTMLFormElement).reset();
-      renderForms(); // Re-render to update category dropdown
-    } catch (error) {
-      showError(error instanceof Error ? error.message : "Failed to create category");
-    }
-  });
-}
-
-/**
- * Setup item form handler
- */
-function setupItemForm(form: HTMLElement): void {
+function setupTodoForm(form: HTMLElement): void {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
-    const categoryIdStr = formData.get("category_id") as string;
-    const status = formData.get("status") as "active" | "inactive" | "archived";
+    const importance = parseInt(formData.get("importance") as string);
+    const urgency = parseInt(formData.get("urgency") as string);
+    const status = formData.get("status") as "pending" | "in_progress" | "completed";
 
-    const itemData: any = {
+    const todoData: any = {
       title,
+      importance,
+      urgency,
       status,
     };
 
     if (description) {
-      itemData.description = description;
-    }
-
-    if (categoryIdStr) {
-      itemData.category_id = parseInt(categoryIdStr);
+      todoData.description = description;
     }
 
     try {
-      if (editingItem) {
-        const updated = await apiClient.updateItem(editingItem.id, itemData);
-        const index = items.findIndex((i) => i.id === editingItem?.id);
-        if (index !== -1) items[index] = updated;
-        showSuccess("Item updated successfully");
-        editingItem = null;
+      if (editingTodo) {
+        const updated = await apiClient.updateTodo(editingTodo.id, todoData);
+        const index = todos.findIndex((t) => t.id === editingTodo?.id);
+        if (index !== -1) todos[index] = updated;
+        showSuccess("Todo updated successfully");
+        editingTodo = null;
       } else {
-        const newItem = await apiClient.createItem(itemData);
-        items.unshift(newItem);
-        showSuccess("Item created successfully");
+        const newTodo = await apiClient.createTodo(todoData);
+        todos.unshift(newTodo);
+        showSuccess("Todo created successfully");
       }
-      renderForms();
-      renderItems();
+      renderTodoForm();
+      renderTodos();
     } catch (error) {
-      showError(error instanceof Error ? error.message : "Failed to save item");
+      showError(error instanceof Error ? error.message : "Failed to save todo");
     }
   });
 
   // Cancel edit button
   const cancelBtn = form.querySelector("#cancel-edit");
   cancelBtn?.addEventListener("click", () => {
-    editingItem = null;
-    renderForms();
+    editingTodo = null;
+    renderTodoForm();
   });
 }
 
 /**
- * Handle edit item
+ * Handle edit todo
  */
-async function handleEditItem(itemId: number): Promise<void> {
-  editingItem = items.find((i) => i.id === itemId) || null;
-  renderForms();
+async function handleEditTodo(todoId: number): Promise<void> {
+  editingTodo = todos.find((t) => t.id === todoId) || null;
+  renderTodoForm();
+  // Scroll to form
+  document
+    .getElementById("todo-form-container")
+    ?.scrollIntoView({ behavior: "smooth" });
 }
 
 /**
- * Handle delete item
+ * Handle delete todo
  */
-async function handleDeleteItem(itemId: number): Promise<void> {
-  if (!confirm("Are you sure you want to delete this item?")) return;
+async function handleDeleteTodo(todoId: number): Promise<void> {
+  if (!confirm("Are you sure you want to delete this todo?")) return;
 
   try {
-    await apiClient.deleteItem(itemId);
-    items = items.filter((i) => i.id !== itemId);
-    showSuccess("Item deleted successfully");
-    renderItems();
+    await apiClient.deleteTodo(todoId);
+    todos = todos.filter((t) => t.id !== todoId);
+    showSuccess("Todo deleted successfully");
+    renderTodos();
   } catch (error) {
-    showError(error instanceof Error ? error.message : "Failed to delete item");
+    showError(error instanceof Error ? error.message : "Failed to delete todo");
   }
 }
 

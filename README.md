@@ -1,6 +1,13 @@
+# Important Context
+
+This entire repository was created using AI, except this section and anything in brackets [rsh: like this]. As of the initial date of publication, 2025-10-03, no human being has ever directly edited this code.
+
+Proceed at your own risk!
+
+
 # Web Application Template
 
-A production-ready full-stack web application template with **Flask (Python) backend** and **TypeScript frontend**, featuring authentication, database models, and CRUD operations.
+A production-ready [rsh: AI's claim, not mine] full-stack web application template with **Flask (Python) backend** and **TypeScript frontend**, featuring authentication, database models, and CRUD operations.
 
 ## 🚀 Quick Start
 

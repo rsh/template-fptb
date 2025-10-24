@@ -6,12 +6,10 @@ export { ApiClient, apiClient } from "./client";
 export type {
   ApiError,
   AuthResponse,
-  Category,
-  CategoryCreateRequest,
-  Item,
-  ItemCreateRequest,
-  ItemUpdateRequest,
   LoginRequest,
   RegisterRequest,
+  Todo,
+  TodoCreateRequest,
+  TodoUpdateRequest,
   User,
 } from "./types";
