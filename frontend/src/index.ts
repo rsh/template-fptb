@@ -3,6 +3,7 @@
  */
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./theme.css";
 import * as bootstrap from "bootstrap";
 import "./styles.css";
 
