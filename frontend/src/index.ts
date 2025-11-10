@@ -3,7 +3,8 @@
  */
 
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./theme.css";
+import "./brite-theme.css";
+import "./brite-theme-override.css";
 import * as bootstrap from "bootstrap";
 import "./styles.css";
 
@@ -192,13 +193,12 @@ function renderQuickAdd(): void {
     const title = formData.get("title") as string;
     const importance = parseInt(formData.get("importance") as string);
     const urgency = parseInt(formData.get("urgency") as string);
-    const status = formData.get("status") as "pending" | "in_progress" | "completed";
 
     const todoData = {
       title,
       importance,
       urgency,
-      status,
+      status: "pending" as const,
     };
 
     try {

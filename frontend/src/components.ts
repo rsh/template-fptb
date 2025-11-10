@@ -192,11 +192,14 @@ export function createQuickAddTask(): HTMLElement {
   container.className = "card p-3";
 
   container.innerHTML = `
+    <h5 class="mb-3">Quick Add Task</h5>
     <form id="quick-add-form" class="row g-2 align-items-end">
-      <div class="col-md-4">
-        <input type="text" class="form-control" id="quick-task-name" name="title" placeholder="Task name" required>
+      <div class="col-md-5">
+        <label for="quick-task-name" class="form-label mb-1">Task Name</label>
+        <input type="text" class="form-control" id="quick-task-name" name="title" placeholder="Get pomegranates" required>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
+        <label for="quick-importance-dropdown" class="form-label mb-1">Importance</label>
         <input type="hidden" id="quick-importance" name="importance" value="2">
         <div class="dropdown w-100">
           <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="quick-importance-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -211,7 +214,8 @@ export function createQuickAddTask(): HTMLElement {
           </ul>
         </div>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
+        <label for="quick-urgency-dropdown" class="form-label mb-1">Urgency</label>
         <input type="hidden" id="quick-urgency" name="urgency" value="2">
         <div class="dropdown w-100">
           <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="quick-urgency-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -226,14 +230,7 @@ export function createQuickAddTask(): HTMLElement {
           </ul>
         </div>
       </div>
-      <div class="col-md-2">
-        <select class="form-select" id="quick-status" name="status">
-          <option value="pending" selected>Pending</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-      </div>
-      <div class="col-md-2">
+      <div class="col-md-1">
         <button type="submit" class="btn btn-primary w-100">
           <i class="bi bi-plus-circle"></i> Add
         </button>
@@ -412,7 +409,7 @@ function formatDate(dateString: string): string {
 function getStatusColor(status: string): string {
   switch (status) {
     case "pending":
-      return "warning";
+      return "secondary";
     case "in_progress":
       return "info";
     case "completed":

@@ -1,0 +1,44 @@
+/**
+ * Brite Theme Color Overrides
+ * This file overrides the default Brite theme colors
+ */
+
+:root,
+[data-bs-theme="light"] {
+  /* Override primary color to bright blue */
+  --bs-blue: #0080ff;
+  --bs-primary: var(--bs-blue);
+  --bs-primary-rgb: 0, 128, 255;
+  --bs-primary-text-emphasis: #00335c;
+  --bs-primary-bg-subtle: #cce5ff;
+  --bs-primary-border-subtle: #99ccff;
+}
+
+:root,
+[data-bs-theme="light"] {
+  /* Override secondary color to grey */
+  --bs-secondary: #6c757d;
+  --bs-secondary-rgb: 108, 117, 125;
+  --bs-secondary-text-emphasis: #2b2f32;
+  --bs-secondary-bg-subtle: #e2e3e5;
+  --bs-secondary-border-subtle: #c4c8cb;
+}
+
+[data-bs-theme="dark"] {
+  /* Dark mode overrides for primary */
+  --bs-blue: #66b3ff;
+  --bs-primary: var(--bs-blue);
+  --bs-primary-rgb: 102, 179, 255;
+  --bs-primary-text-emphasis: #99ccff;
+  --bs-primary-bg-subtle: #001a33;
+  --bs-primary-border-subtle: #004d99;
+}
+
+[data-bs-theme="dark"] {
+  /* Dark mode overrides for secondary */
+  --bs-secondary: #adb5bd;
+  --bs-secondary-rgb: 173, 181, 189;
+  --bs-secondary-text-emphasis: #dee2e6;
+  --bs-secondary-bg-subtle: #2b3035;
+  --bs-secondary-border-subtle: #565e64;
+}

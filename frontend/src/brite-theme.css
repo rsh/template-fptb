@@ -13,6 +13,7 @@
  */
 :root,
 [data-bs-theme="light"] {
+  /* Primary brand color - change this to update the primary theme color throughout the app */
   --bs-blue: #61bcff;
   --bs-indigo: #828df9;
   --bs-purple: #be82fa;
@@ -36,7 +37,7 @@
   --bs-gray-700: #495057;
   --bs-gray-800: #343a40;
   --bs-gray-900: #212529;
-  --bs-primary: #61bcff;
+  --bs-primary: var(--bs-blue);
   --bs-secondary: #fff;
   --bs-success: #68d391;
   --bs-info: #22d2ed;
