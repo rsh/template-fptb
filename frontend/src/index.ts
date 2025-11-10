@@ -23,6 +23,7 @@ import {
   createRegisterForm,
   createTodoForm,
   createTodosTable,
+  createQuickAddTask,
   showError,
   showSuccess,
 } from "./components";
@@ -144,16 +145,94 @@ async function showMainView(): Promise<void> {
       </div>
     </nav>
     <div class="container mt-4">
-      <div id="todo-form-container"></div>
+      <div id="quick-add-container" class="mb-3"></div>
       <div id="todos-container"></div>
+    </div>
+
+    <!-- Todo Form Modal -->
+    <div class="modal fade" id="todoModal" tabindex="-1" aria-labelledby="todoModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="todoModalLabel">Add Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="todo-form-container">
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
   document.getElementById("logout-btn")?.addEventListener("click", handleLogout);
 
+  // Render quick add section
+  renderQuickAdd();
+
   await loadData();
-  renderTodoForm();
   renderTodos();
+}
+
+/**
+ * Render quick add task section
+ */
+function renderQuickAdd(): void {
+  const quickAddContainer = document.getElementById("quick-add-container");
+  if (!quickAddContainer) return;
+
+  quickAddContainer.innerHTML = "";
+  const quickAddComponent = createQuickAddTask();
+  quickAddContainer.appendChild(quickAddComponent);
+
+  // Setup form submission handler
+  const form = quickAddComponent.querySelector("#quick-add-form");
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const title = formData.get("title") as string;
+    const importance = parseInt(formData.get("importance") as string);
+    const urgency = parseInt(formData.get("urgency") as string);
+    const status = formData.get("status") as "pending" | "in_progress" | "completed";
+
+    const todoData = {
+      title,
+      importance,
+      urgency,
+      status,
+    };
+
+    try {
+      const newTodo = await apiClient.createTodo(todoData);
+      todos.unshift(newTodo);
+      showSuccess("Task created successfully");
+      renderTodos();
+
+      // Reset form
+      (e.target as HTMLFormElement).reset();
+      // Reset dropdowns to default (Medium)
+      const importanceInput = form.querySelector(
+        "#quick-importance"
+      ) as HTMLInputElement;
+      const urgencyInput = form.querySelector("#quick-urgency") as HTMLInputElement;
+      const importanceSelected = form.querySelector(
+        "#quick-importance-selected"
+      ) as HTMLElement;
+      const urgencySelected = form.querySelector(
+        "#quick-urgency-selected"
+      ) as HTMLElement;
+
+      if (importanceInput) importanceInput.value = "2";
+      if (urgencyInput) urgencyInput.value = "2";
+      if (importanceSelected) {
+        importanceSelected.innerHTML = `${document.querySelector(".quick-importance-option[data-value='2']")?.innerHTML || "Medium"}`;
+      }
+      if (urgencySelected) {
+        urgencySelected.innerHTML = `${document.querySelector(".quick-urgency-option[data-value='2']")?.innerHTML || "Medium"}`;
+      }
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Failed to create task");
+    }
+  });
 }
 
 /**
@@ -168,16 +247,30 @@ async function loadData(): Promise<void> {
 }
 
 /**
- * Render todo form
+ * Open todo modal for adding or editing
  */
-function renderTodoForm(): void {
+function openTodoModal(todo?: Todo): void {
+  const modalElement = document.getElementById("todoModal");
+  const modalTitle = document.getElementById("todoModalLabel");
   const todoFormContainer = document.getElementById("todo-form-container");
-  if (todoFormContainer) {
-    todoFormContainer.innerHTML = "";
-    const todoForm = createTodoForm(editingTodo || undefined);
-    todoFormContainer.appendChild(todoForm);
-    setupTodoForm(todoForm);
-  }
+
+  if (!modalElement || !modalTitle || !todoFormContainer) return;
+
+  // Update modal title
+  modalTitle.textContent = todo ? "Edit Task" : "Add Task";
+
+  // Render form
+  todoFormContainer.innerHTML = "";
+  const todoForm = createTodoForm(todo);
+  todoFormContainer.appendChild(todoForm);
+  setupTodoForm(todoForm);
+
+  // Show modal
+  const modal = new (window as any).bootstrap.Modal(modalElement);
+  modal.show();
+
+  // Store modal reference for closing later
+  (modalElement as any)._modalInstance = modal;
 }
 
 /**
@@ -243,7 +336,7 @@ function setupTodoForm(form: HTMLElement): void {
         todos.unshift(newTodo);
         showSuccess("Todo created successfully");
       }
-      renderTodoForm();
+      closeModal();
       renderTodos();
     } catch (error) {
       showError(error instanceof Error ? error.message : "Failed to save todo");
@@ -254,8 +347,18 @@ function setupTodoForm(form: HTMLElement): void {
   const cancelBtn = form.querySelector("#cancel-edit");
   cancelBtn?.addEventListener("click", () => {
     editingTodo = null;
-    renderTodoForm();
+    closeModal();
   });
+}
+
+/**
+ * Close the todo modal
+ */
+function closeModal(): void {
+  const modalElement = document.getElementById("todoModal");
+  if (modalElement && (modalElement as any)._modalInstance) {
+    (modalElement as any)._modalInstance.hide();
+  }
 }
 
 /**
@@ -263,11 +366,9 @@ function setupTodoForm(form: HTMLElement): void {
  */
 async function handleEditTodo(todoId: number): Promise<void> {
   editingTodo = todos.find((t) => t.id === todoId) || null;
-  renderTodoForm();
-  // Scroll to form
-  document
-    .getElementById("todo-form-container")
-    ?.scrollIntoView({ behavior: "smooth" });
+  if (editingTodo) {
+    openTodoModal(editingTodo);
+  }
 }
 
 /**

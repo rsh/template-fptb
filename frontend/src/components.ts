@@ -87,10 +87,9 @@ export function createRegisterForm(): HTMLElement {
  */
 export function createTodoForm(todo?: Todo): HTMLElement {
   const form = document.createElement("form");
-  form.className = "card p-4 mb-4";
+  form.className = "";
 
   form.innerHTML = `
-    <h3 class="mb-3">${todo ? "Edit Todo" : "Create New Todo"}</h3>
     <div class="mb-3">
       <label for="todo-title" class="form-label">Title</label>
       <input type="text" class="form-control" id="todo-title" name="title"
@@ -142,11 +141,11 @@ export function createTodoForm(todo?: Todo): HTMLElement {
         <option value="completed" ${todo?.status === "completed" ? "selected" : ""}>Completed</option>
       </select>
     </div>
-    <div class="d-flex gap-2">
+    <div class="modal-footer">
+      ${todo ? '<button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>' : '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>'}
       <button type="submit" class="btn btn-primary">
-        ${todo ? "Update" : "Create"} Todo
+        ${todo ? "Update" : "Create"} Task
       </button>
-      ${todo ? '<button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>' : ""}
     </div>
   `;
 
@@ -183,6 +182,106 @@ export function createTodoForm(todo?: Todo): HTMLElement {
   }, 0);
 
   return form;
+}
+
+/**
+ * Create quick add task component
+ */
+export function createQuickAddTask(): HTMLElement {
+  const container = document.createElement("div");
+  container.className = "card p-3";
+
+  container.innerHTML = `
+    <form id="quick-add-form" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <input type="text" class="form-control" id="quick-task-name" name="title" placeholder="Task name" required>
+      </div>
+      <div class="col-md-2">
+        <input type="hidden" id="quick-importance" name="importance" value="2">
+        <div class="dropdown w-100">
+          <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="quick-importance-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="quick-importance-selected">${getLevelSvg(2)}${getLevelLabel(2)}</span>
+            <span>▼</span>
+          </button>
+          <ul class="dropdown-menu w-100" aria-labelledby="quick-importance-dropdown">
+            <li><a class="dropdown-item quick-importance-option" href="#" data-value="1">${getLevelSvg(1)}Low</a></li>
+            <li><a class="dropdown-item quick-importance-option" href="#" data-value="2">${getLevelSvg(2)}Medium</a></li>
+            <li><a class="dropdown-item quick-importance-option" href="#" data-value="3">${getLevelSvg(3)}High</a></li>
+            <li><a class="dropdown-item quick-importance-option" href="#" data-value="4">${getLevelSvg(4)}Critical</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <input type="hidden" id="quick-urgency" name="urgency" value="2">
+        <div class="dropdown w-100">
+          <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="quick-urgency-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="quick-urgency-selected">${getLevelSvg(2)}${getLevelLabel(2)}</span>
+            <span>▼</span>
+          </button>
+          <ul class="dropdown-menu w-100" aria-labelledby="quick-urgency-dropdown">
+            <li><a class="dropdown-item quick-urgency-option" href="#" data-value="1">${getLevelSvg(1)}Low</a></li>
+            <li><a class="dropdown-item quick-urgency-option" href="#" data-value="2">${getLevelSvg(2)}Medium</a></li>
+            <li><a class="dropdown-item quick-urgency-option" href="#" data-value="3">${getLevelSvg(3)}High</a></li>
+            <li><a class="dropdown-item quick-urgency-option" href="#" data-value="4">${getLevelSvg(4)}Critical</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" id="quick-status" name="status">
+          <option value="pending" selected>Pending</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-plus-circle"></i> Add
+        </button>
+      </div>
+    </form>
+  `;
+
+  // Add event listeners for dropdown selections
+  setTimeout(() => {
+    const importanceOptions = container.querySelectorAll(".quick-importance-option");
+    const urgencyOptions = container.querySelectorAll(".quick-urgency-option");
+
+    importanceOptions.forEach((option) => {
+      option.addEventListener("click", (e) => {
+        e.preventDefault();
+        const value = (e.currentTarget as HTMLElement).dataset["value"] || "2";
+        const hiddenInput = container.querySelector(
+          "#quick-importance"
+        ) as HTMLInputElement;
+        const selectedSpan = container.querySelector(
+          "#quick-importance-selected"
+        ) as HTMLElement;
+        if (hiddenInput) hiddenInput.value = value;
+        if (selectedSpan) {
+          selectedSpan.innerHTML = `${getLevelSvg(parseInt(value))}${getLevelLabel(parseInt(value))}`;
+        }
+      });
+    });
+
+    urgencyOptions.forEach((option) => {
+      option.addEventListener("click", (e) => {
+        e.preventDefault();
+        const value = (e.currentTarget as HTMLElement).dataset["value"] || "2";
+        const hiddenInput = container.querySelector(
+          "#quick-urgency"
+        ) as HTMLInputElement;
+        const selectedSpan = container.querySelector(
+          "#quick-urgency-selected"
+        ) as HTMLElement;
+        if (hiddenInput) hiddenInput.value = value;
+        if (selectedSpan) {
+          selectedSpan.innerHTML = `${getLevelSvg(parseInt(value))}${getLevelLabel(parseInt(value))}`;
+        }
+      });
+    });
+  }, 0);
+
+  return container;
 }
 
 /**

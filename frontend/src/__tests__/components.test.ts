@@ -67,7 +67,7 @@ describe("Components", () => {
       expect(form.querySelector("#todo-importance")).toBeTruthy();
       expect(form.querySelector("#todo-urgency")).toBeTruthy();
       expect(form.querySelector("#todo-status")).toBeTruthy();
-      expect(form.textContent).toContain("Create New Todo");
+      expect(form.textContent).toContain("Create Task");
     });
 
     it("populates form with existing todo data", () => {
@@ -106,7 +106,7 @@ describe("Components", () => {
       expect(statusSelect.value).toBe("in_progress");
       expect(importanceSelect.value).toBe("3");
       expect(urgencySelect.value).toBe("2");
-      expect(form.textContent).toContain("Edit Todo");
+      expect(form.textContent).toContain("Update Task");
       expect(form.querySelector("#cancel-edit")).toBeTruthy();
     });
   });
